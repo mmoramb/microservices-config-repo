@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
  
 @Service
 @Transactional
@@ -17,11 +18,13 @@ import java.util.Optional;
 public class ProductService {
     private final ProductRepository productRepository;
     private final RestTemplate restTemplate;
+    private final InventoryServiceClient inventoryServiceClient;
     
     @Autowired
-    public ProductService(ProductRepository productRepository, RestTemplate restTemplate) {
+    public ProductService(ProductRepository productRepository, RestTemplate restTemplate, InventoryServiceClient inventoryServiceClient) {
         this.productRepository = productRepository;
         this.restTemplate = restTemplate;
+        this.inventoryServiceClient = inventoryServiceClient;
     }
  
     
@@ -30,6 +33,10 @@ public class ProductService {
     }
  
     public Optional<Product> findProductByCode(String code) {
+    	String correlationId = UUID.randomUUID().toString();
+    	MyThreadLocalsHolder.setCorrelationId(correlationId);
+    	Optional<ProductInventoryResponse> respoEntity = inventoryServiceClient.getProductInventoryByCode(code);
+    	
     	Optional<Product> productOptional = productRepository.findByCode(code);
     	if (productOptional.isPresent()) {
 			ResponseEntity<ProductInventoryResponse> itemEntityRes = restTemplate.getForEntity(
@@ -37,7 +44,7 @@ public class ProductService {
 					code);
 			
 			if (itemEntityRes.getStatusCode() == HttpStatus.OK) {
-				Integer quantity = itemEntityRes.getBody().getAvailableQuantity();
+				Integer quantity = itemEntityRes.getBody().getAvailableQuatity();
                 productOptional.get().setInStock(quantity > 0);
 			} else {
 				System.out.println("Unable to get inventory level for product_code");
@@ -45,6 +52,21 @@ public class ProductService {
 		}
     	
     	return productOptional;
+//    	Optional<Product> productOptional = productRepository.findByCode(code);
+//    	if (productOptional.isPresent()) {
+//			ResponseEntity<ProductInventoryResponse> itemEntityRes = restTemplate.getForEntity(
+//					"http://inventory-service/api/inventory/{code}", ProductInventoryResponse.class,
+//					code);
+//			
+//			if (itemEntityRes.getStatusCode() == HttpStatus.OK) {
+//				Integer quantity = itemEntityRes.getBody().getAvailableQuatity();
+//                productOptional.get().setInStock(quantity > 0);
+//			} else {
+//				System.out.println("Unable to get inventory level for product_code");
+//			}
+//		}
+//    	
+//    	return productOptional;
     }
     
     
