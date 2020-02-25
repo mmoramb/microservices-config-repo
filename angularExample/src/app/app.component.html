@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang = "en">
+   <head>
+      <meta charset = "utf-8">
+      <title>Angular 6 Application</title>
+      <base href = "/">
+      <meta name = "viewport" content = "width = device-width, initial-scale = 1">
+      <link rel = "icon" type = "image/x-icon" href = "favicon.ico">
+   </head>
+   <body>
+      <div style = "text-align:center">
+        <h1>
+          Welcome to {{title}}.
+        </h1>
+      </div>
+      <div> Months :
+        <select (change)="changemonths($event)">
+          <option *ngFor = "let i of months"> {{i}} </option>
+        </select>
+     </div>
+     <div> 
+      <!--over here based on if condition the text condition is valid is displayed. 
+      If the value of isavailable is set to false it will not display the text.-->
+      </div>
+      <div>
+        <span *ngIf="isavailable; else condition2">condition is valid</span>
+        <ng-template #condition1>condition is valid</ng-template>
+        <ng-template #condition2>condition is invalid</ng-template>
+      </div>
+      {{todayDate}}
+      <button (click)="myClickFunction($event)">
+        Click me
+      </button>
+      <a routerLink ="new-cmp">New component</a>
+
+    <router-outlet></router-outlet>      
+   </body>
+</html>
+
+
